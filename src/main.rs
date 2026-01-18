@@ -5,24 +5,12 @@ mod particle_extractor;
 use std::fs::File;
 use std::io::{self, BufRead, Error};
 use std::path::Path;
-
-use particle_extractor::extract;
-
 const SIZE: usize = 256;
 
 fn main() -> eframe::Result<()> {
-    let mut grid: Vec<Vec<f32>> = vec![vec![0.0; SIZE]; SIZE];
-    let mut id_map: Vec<Vec<usize>> = vec![vec![0; SIZE]; SIZE];
+    let grid: Vec<Vec<f32>> = vec![vec![0.0; SIZE]; SIZE];
 
-    grid = match read_lines("./test.txt") {
-        Ok(grid) => grid,
-        Err(e) => panic!("{}", e),
-    };
-
-    let tracks: Vec<decoder::Particle> = extract(&grid, &mut id_map, 2)
-        .iter()
-        .map(|(_, track)| decoder::Particle::new(track.clone()))
-        .collect();
+    let tracks: Vec<decoder::Particle> = Vec::new();
 
     // graphics
     let options = eframe::NativeOptions::default();
@@ -33,7 +21,7 @@ fn main() -> eframe::Result<()> {
     )
 }
 
-fn read_lines<P>(filename: P) -> Result<Vec<Vec<f32>>, std::io::Error>
+pub fn read_lines<P>(filename: P) -> Result<Vec<Vec<f32>>, std::io::Error>
 where
     P: AsRef<Path>,
 {

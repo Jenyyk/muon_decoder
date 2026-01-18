@@ -12,6 +12,7 @@ pub enum PartType {
 }
 use std::cell::RefCell;
 
+#[derive(Clone)]
 pub struct Particle {
     track: Vec<(usize, usize)>,
     total_energy_cache: RefCell<Option<f32>>,
