@@ -1,7 +1,7 @@
 use crate::decoder::{PartType, Particle};
-use eframe::{egui::{self, ColorImage}, glow::ALPHA};
-use std::collections::HashMap;
+use eframe::egui::{self, ColorImage};
 use rfd::FileDialog;
+use std::collections::HashMap;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum Mode {
@@ -113,7 +113,10 @@ impl MatrixApp {
         self.tracks_to_draw.clear();
 
         for track in &self.all_tracks {
-            if filters.iter().any(|(show, ty)| *show && track.particle_type(&self.matrix) == *ty) {
+            if filters
+                .iter()
+                .any(|(show, ty)| *show && track.particle_type(&self.matrix) == *ty)
+            {
                 self.tracks_to_draw.push(track.clone());
             }
         }
@@ -139,8 +142,11 @@ impl eframe::App for MatrixApp {
             && !self.tracks_to_draw.is_empty()
             && self.current_mode == Mode::Single
         {
-            self.current_track =
-                if self.current_track == 0 { self.tracks_to_draw.len() - 1 } else { self.current_track - 1 };
+            self.current_track = if self.current_track == 0 {
+                self.tracks_to_draw.len() - 1
+            } else {
+                self.current_track - 1
+            };
             self.needs_update = true;
         }
 
@@ -164,8 +170,11 @@ impl eframe::App for MatrixApp {
                 ui.separator();
 
                 if ui.button("◀ Prev").clicked() && self.current_mode == Mode::Single {
-                    self.current_track =
-                        if self.current_track == 0 { self.tracks_to_draw.len() - 1 } else { self.current_track - 1 };
+                    self.current_track = if self.current_track == 0 {
+                        self.tracks_to_draw.len() - 1
+                    } else {
+                        self.current_track - 1
+                    };
                     self.update_image();
                 }
 
@@ -237,13 +246,15 @@ impl eframe::App for MatrixApp {
                 let response_mu = ui.checkbox(&mut self.show_muon, "Muon");
                 let response_un = ui.checkbox(&mut self.show_unknown, "Unknown");
 
-                
-                if response_al.changed() || response_be.changed() || response_ga.changed() || response_mu.changed() || response_un.changed() {
+                if response_al.changed()
+                    || response_be.changed()
+                    || response_ga.changed()
+                    || response_mu.changed()
+                    || response_un.changed()
+                {
                     self.update_counter();
                     self.update_image();
                 }
-
-                
             });
 
         // ============================
@@ -251,9 +262,9 @@ impl eframe::App for MatrixApp {
         // ============================
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.vertical_centered(|ui| {
-                let texture = ui
-                    .ctx()
-                    .load_texture("track_image", self.image.clone(), Default::default());
+                let texture =
+                    ui.ctx()
+                        .load_texture("track_image", self.image.clone(), Default::default());
 
                 ui.image(&texture);
 
@@ -279,24 +290,21 @@ impl eframe::App for MatrixApp {
         // ============================
         egui::TopBottomPanel::bottom("bottom_bar").show(ctx, |ui| {
             ui.horizontal(|ui| {
-                if ui.button("📂 Open File").clicked() {
-                    if let Some(path) = FileDialog::new().pick_file() {
-                        if let Ok(mat) = crate::read_lines(path) {
-                            self.matrix = mat;
-                            let mut id_map = vec![vec![0; crate::SIZE]; crate::SIZE];
-                            self.all_tracks = crate::particle_extractor::extract(
-                                &self.matrix,
-                                &mut id_map,
-                                1,
-                            )
-                                .iter()
-                                .map(|(_, t)| crate::decoder::Particle::new(t.clone()))
+                if ui.button("📂 Open File").clicked()
+                    && let Some(path) = FileDialog::new().pick_file()
+                {
+                    if let Ok(mat) = crate::read_lines(path) {
+                        self.matrix = mat;
+                        let mut id_map = vec![vec![0; crate::SIZE]; crate::SIZE];
+                        self.all_tracks =
+                            crate::particle_extractor::extract(&self.matrix, &mut id_map, 1)
+                                .values()
+                                .map(|t| crate::decoder::Particle::new(t.clone()))
                                 .collect();
-                            self.update_counter();        
-                            self.update_image();
-                        } else {
-                            self.error = Some("error".to_string());
-                        }
+                        self.update_counter();
+                        self.update_image();
+                    } else {
+                        self.error = Some("error".to_string());
                     }
                 }
             });

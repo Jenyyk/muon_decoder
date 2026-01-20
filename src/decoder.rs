@@ -1,8 +1,9 @@
-use geo::{Area, ConvexHull, EuclideanLength};
+use geo::{Area, ConvexHull, Euclidean, Length};
 use geo_types::{Coord, MultiPoint};
 use std::f64::consts::PI;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum PartType {
     ALPHA,
     BETA,
@@ -39,29 +40,25 @@ impl Particle {
         self.track.len()
     }
 
-    pub fn total_energy(&self, grid: &Vec<Vec<f32>>) -> f32 {
+    pub fn total_energy(&self, grid: &[Vec<f32>]) -> f32 {
         if let Some(val) = *self.total_energy_cache.borrow() {
             return val;
         }
 
-        let energy: f32 = self
-            .track
-            .iter()
-            .map(|&(x, y)| grid[x as usize][y as usize])
-            .sum();
+        let energy: f32 = self.track.iter().map(|&(x, y)| grid[x][y]).sum();
 
         *self.total_energy_cache.borrow_mut() = Some(energy);
         energy
     }
 
-    pub fn max_energy(&self, grid: &Vec<Vec<f32>>) -> f32 {
+    pub fn max_energy(&self, grid: &[Vec<f32>]) -> f32 {
         self.track
             .iter()
-            .map(|&(x, y)| grid[x as usize][y as usize])
+            .map(|&(x, y)| grid[x][y])
             .fold(0.0, |acc, val| acc.max(val))
     }
 
-    pub fn avg_energy(&self, grid: &Vec<Vec<f32>>) -> f32 {
+    pub fn avg_energy(&self, grid: &[Vec<f32>]) -> f32 {
         self.total_energy(grid) / self.size() as f32
     }
 
@@ -85,7 +82,7 @@ impl Particle {
         val
     }
 
-    pub fn particle_type(&self, grid: &Vec<Vec<f32>>) -> PartType {
+    pub fn particle_type(&self, grid: &[Vec<f32>]) -> PartType {
         if let Some(pt) = *self.part_type_cache.borrow() {
             return pt;
         }
@@ -94,6 +91,7 @@ impl Particle {
             0..4 => return PartType::GAMMA,
             4..50 => {
                 if self.max_energy(grid) < 150.0 && self.avg_energy(grid) < 40.0 {
+                    #[allow(clippy::if_same_then_else)]
                     if self.winding() < 1.0 {
                         PartType::BETA
                     } else {
@@ -143,7 +141,7 @@ fn roundness(points: &[(usize, usize)]) -> f32 {
     let hull = mp.convex_hull();
 
     let area = hull.unsigned_area();
-    let perimeter = hull.exterior().euclidean_length();
+    let perimeter = Euclidean.length(hull.exterior());
 
     (4.0 * PI * area / (perimeter * perimeter)) as f32
 }
